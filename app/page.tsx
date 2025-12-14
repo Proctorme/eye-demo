@@ -64,7 +64,7 @@ export default function Home() {
       // Add event listeners first
       widget.on("STARTED", () => {
         console.log("Widget started ▶️");
-        setCandidateData(data);
+        setCandidateData({...data, candidateId, assessmentId });
         setAppState("quiz");
         updateStatus("Started");
       });
