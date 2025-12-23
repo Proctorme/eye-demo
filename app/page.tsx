@@ -102,7 +102,7 @@ export default function Home() {
         candidateLastName: data.lastName,
         candidateImageUrl: data.imageUrl,
         institutionName: "Tech Academy International",
-        examDuration: 1800,
+        examDuration: 300,
         features: {
           facialRecognition: data.enableFacialRecognition,
         },
