@@ -45,7 +45,7 @@ export default function Home() {
   }
   const handleStartQuiz = async (data: CandidateData) => {
     try {
-      const widget = await window.LoadProctormeWidget?.();
+      const widget = await window.LoadEyeWidget?.();
       if (!widget) {
         console.error("Failed to load the proctoring widget.");
         return;

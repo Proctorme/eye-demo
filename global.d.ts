@@ -25,6 +25,6 @@ export interface IWidget {
 }
 declare global {
   interface Window {
-    LoadProctormeWidget?: () => Promise<IWidget>;
+    LoadEyeWidget?: () => Promise<IWidget>;
   }
 }

@@ -39,7 +39,7 @@ export default function RootLayout({
         {children}
 
         <Script
-          src="https://widget.proctorme.com/eyebyproctorme-widget-init.js"
+          src="https://widget.eyeproctor.com/eye-widget-init.js"
           strategy="afterInteractive"
         />
       </body>
