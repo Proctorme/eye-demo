@@ -8,7 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
-import type { CandidateData } from "@/app/page";
+
+export type CandidateData = {
+  apiKey: string;
+  candidateId: string;
+  assessmentId: string;
+  firstName: string;
+  lastName: string;
+  imageUrl: string;
+  enableFacialRecognition: boolean;
+};
 
 interface CandidateModalProps {
   onSubmit: (data: CandidateData) => Promise<void> | void;

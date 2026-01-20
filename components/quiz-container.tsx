@@ -1,18 +1,16 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation";
 import { QuizQuestion } from "./quiz-question"
 import { QuizTimer } from "./quiz-timer"
 import { QuizProgress } from "./quiz-progress"
 import { CandidateHeader } from "./candidate-header"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import type { CandidateData } from "@/app/page"
+import { useCandidateContext } from "@/lib/candidate-context"
 
-interface QuizContainerProps {
-  candidateData: CandidateData
-  onComplete: (score: number, total: number) => void
-}
+interface QuizContainerProps {}
 
 // Sample questions - replace with your actual questions
 const QUIZ_QUESTIONS = [
@@ -48,12 +46,19 @@ const QUIZ_QUESTIONS = [
   },
 ]
 
-export function QuizContainer({ candidateData, onComplete }: QuizContainerProps) {
+export function QuizContainer({}: QuizContainerProps) {
+  const { candidateData, setQuizResult } = useCandidateContext();
+  const router = useRouter();
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [score, setScore] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
   const [answered, setAnswered] = useState(false)
   const [timeUp, setTimeUp] = useState(false)
+
+  if (!candidateData) {
+    return null; // Or redirect to registration page
+  }
 
   const currentQuestion = QUIZ_QUESTIONS[currentQuestionIndex]
   const isLastQuestion = currentQuestionIndex === QUIZ_QUESTIONS.length - 1
@@ -72,7 +77,9 @@ export function QuizContainer({ candidateData, onComplete }: QuizContainerProps)
 
   const handleNextQuestion = () => {
     if (isLastQuestion) {
-      onComplete(score + (selectedAnswer === currentQuestion.correctAnswer ? 1 : 0), QUIZ_QUESTIONS.length)
+      const finalScore = score + (selectedAnswer === currentQuestion.correctAnswer ? 1 : 0);
+      setQuizResult({ score: finalScore, totalQuestions: QUIZ_QUESTIONS.length });
+      router.push('/results');
     } else {
       setCurrentQuestionIndex((prev) => prev + 1)
       setSelectedAnswer(null)
@@ -82,7 +89,8 @@ export function QuizContainer({ candidateData, onComplete }: QuizContainerProps)
 
   const handleTimeUp = () => {
     setTimeUp(true)
-    onComplete(score, QUIZ_QUESTIONS.length)
+    setQuizResult({ score, totalQuestions: QUIZ_QUESTIONS.length });
+    router.push('/results');
   }
 
   if (timeUp) {

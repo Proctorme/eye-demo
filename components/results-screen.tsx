@@ -3,13 +3,13 @@
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import type { CandidateData } from "@/app/page"
+import { useCandidateContext } from "@/lib/candidate-context"
 
 interface ResultsScreenProps {
-  score: number
-  totalQuestions: number
-  candidateData: CandidateData
-  onRetry: () => void
+  score: number;
+  totalQuestions: number;
+  candidateData: any; // Replace with proper type
+  onRetry: () => void;
 }
 
 export function ResultsScreen({ score, totalQuestions, candidateData, onRetry }: ResultsScreenProps) {
