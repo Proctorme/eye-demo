@@ -10,7 +10,9 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { useCandidateContext } from "@/lib/candidate-context"
 
-interface QuizContainerProps {}
+interface QuizContainerProps {
+  onComplete?: (score: number, totalQuestions: number) => void;
+}
 
 // Sample questions - replace with your actual questions
 const QUIZ_QUESTIONS = [
@@ -46,8 +48,8 @@ const QUIZ_QUESTIONS = [
   },
 ]
 
-export function QuizContainer({}: QuizContainerProps) {
-  const { candidateData, setQuizResult } = useCandidateContext();
+export function QuizContainer({ onComplete }: QuizContainerProps) {
+  const { candidateData, setQuizResult, widgetRef } = useCandidateContext();
   const router = useRouter();
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
@@ -78,8 +80,13 @@ export function QuizContainer({}: QuizContainerProps) {
   const handleNextQuestion = () => {
     if (isLastQuestion) {
       const finalScore = score + (selectedAnswer === currentQuestion.correctAnswer ? 1 : 0);
-      setQuizResult({ score: finalScore, totalQuestions: QUIZ_QUESTIONS.length });
-      router.push('/results');
+      // Call the onComplete callback if provided, otherwise use context
+      if (onComplete) {
+        onComplete(finalScore, QUIZ_QUESTIONS.length);
+      } else {
+        setQuizResult({ score: finalScore, totalQuestions: QUIZ_QUESTIONS.length });
+        router.push('/results');
+      }
     } else {
       setCurrentQuestionIndex((prev) => prev + 1)
       setSelectedAnswer(null)
@@ -89,8 +96,13 @@ export function QuizContainer({}: QuizContainerProps) {
 
   const handleTimeUp = () => {
     setTimeUp(true)
-    setQuizResult({ score, totalQuestions: QUIZ_QUESTIONS.length });
-    router.push('/results');
+    // Call the onComplete callback if provided, otherwise use context
+    if (onComplete) {
+      onComplete(score, QUIZ_QUESTIONS.length);
+    } else {
+      setQuizResult({ score, totalQuestions: QUIZ_QUESTIONS.length });
+      router.push('/results');
+    }
   }
 
   if (timeUp) {

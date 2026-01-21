@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, RefObject } from "react";
+import { IWidget } from "@/global";
 
 export type CandidateData = {
   apiKey: string;
@@ -23,6 +24,8 @@ type CandidateContextType = {
   resetCandidateData: () => void;
   quizResult: QuizResult | null;
   setQuizResult: (result: QuizResult) => void;
+  widgetRef: RefObject<IWidget> | null;
+  setWidgetRef: (ref: RefObject<IWidget>) => void;
 };
 
 const CandidateContext = createContext<CandidateContextType | undefined>(undefined);
@@ -30,10 +33,12 @@ const CandidateContext = createContext<CandidateContextType | undefined>(undefin
 export function CandidateProvider({ children }: { children: ReactNode }) {
   const [candidateData, setCandidateData] = useState<CandidateData | null>(null);
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
+  const [widgetRef, setWidgetRef] = useState<RefObject<IWidget> | null>(null);
 
   const resetCandidateData = () => {
     setCandidateData(null);
     setQuizResult(null);
+    setWidgetRef(null);
   };
 
   return (
@@ -43,7 +48,9 @@ export function CandidateProvider({ children }: { children: ReactNode }) {
         setCandidateData,
         resetCandidateData,
         quizResult,
-        setQuizResult
+        setQuizResult,
+        widgetRef,
+        setWidgetRef
       }}
     >
       {children}

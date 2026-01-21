@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { IWidget } from "@/global";
 
 export default function RegistrationPage() {
-  const { setCandidateData } = useCandidateContext();
+  const { setCandidateData, setWidgetRef } = useCandidateContext();
   const router = useRouter();
   const widgetRef = useRef<IWidget>(null);
   const [status, updateStatus] = useState("Not Started");
