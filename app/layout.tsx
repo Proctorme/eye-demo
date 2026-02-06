@@ -42,7 +42,7 @@ export default function RootLayout({
         </CandidateProvider>
 
         <Script
-          src="https://widget.eyeproctor.com/eye-widget-init.js"
+          src={process.env.NEXT_PUBLIC_SCRIPT_URL}
           strategy="afterInteractive"
         />
       </body>
