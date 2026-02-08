@@ -9,7 +9,6 @@ import { IWidget } from "@/global";
 export default function RegistrationPage() {
   const { setCandidateData, setWidgetRef } = useCandidateContext();
   const router = useRouter();
-  const widgetRef = useRef<IWidget>(null);
   const [status, updateStatus] = useState("Not Started");
 
   function refreshWithCandidateId() {
@@ -33,12 +32,12 @@ export default function RegistrationPage() {
   const handleStartQuiz = async (data: CandidateData) => {
     // Collect form data
     const candidateId =
-      data.candidateId ||
+      data.candidateId.trim() ||
       getCandidateId() ||
       Math.random().toString(36).substring(2, 10);
 
     const assessmentId =
-      data.assessmentId ||
+      data.assessmentId.trim() ||
       getAssessmentId() ||
       Math.random().toString(36).substring(2, 10);
 
@@ -48,7 +47,7 @@ export default function RegistrationPage() {
         console.error("Failed to load the proctoring widget.");
         return;
       }
-      widgetRef.current = widget;
+      setWidgetRef(widget);
 
       // Add event listeners first
       widget.on("STARTED", () => {

@@ -18,7 +18,7 @@ export default function QuizPage() {
   const handleQuizComplete = (score: number, totalQuestions: number) => {
     // Store the quiz result in context
     setQuizResult({ score, totalQuestions });
-
+    console.log({widgetRef})
     // End the proctoring session if widget is available
     if (widgetRef?.current) {
       try {
