@@ -21,6 +21,7 @@ interface IParamsConfig {
 export interface IWidget {
   init: (config: IParamsConfig) => Promise<void>;
   on: (event: string, callback: (data?: unknown) => void) => void;
+  resetSessionListeners: () => void;
   endProctoring: () => void;
 }
 declare global {

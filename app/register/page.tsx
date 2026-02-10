@@ -48,7 +48,7 @@ export default function RegistrationPage() {
         return;
       }
       setWidgetRef(widget);
-
+      widget.resetSessionListeners();
       // Add event listeners first
       widget.on("STARTED", () => {
         console.log("Widget started ▶️");
