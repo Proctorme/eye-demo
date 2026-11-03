@@ -35,6 +35,7 @@ export default function ResultsPage() {
 
   return (
     <ResultsScreen
+      timeUsed={quizResult.timeUsed}
       score={quizResult.score}
       totalQuestions={quizResult.totalQuestions}
       candidateData={candidateData}

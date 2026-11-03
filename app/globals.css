@@ -4,25 +4,25 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.97 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: #F5F2FC;
+  --foreground: #1B0E44;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.511 0.193 241.36);
+  --primary: #6A2BE9;
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.145 0 0);
   --muted: oklch(0.93 0 0);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.511 0.193 241.36);
+  --accent: #6A2BE9;
   --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.93 0 0);
-  --input: oklch(0.96 0 0);
-  --ring: oklch(0.511 0.193 241.36);
+  --border: #E5DFFB;
+  --input: #E5DFFB;
+  --ring: #6A2BE9;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -31,12 +31,12 @@
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.511 0.193 241.36);
+  --sidebar-primary: #6A2BE9;
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.97 0 0);
   --sidebar-accent-foreground: oklch(0.145 0 0);
   --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.511 0.193 241.36);
+  --sidebar-ring: #6A2BE9;
 }
 
 .dark {
@@ -75,8 +75,9 @@
 }
 
 @theme inline {
-  --font-sans: "Geist", "Geist Fallback";
-  --font-mono: "Geist Mono", "Geist Mono Fallback";
+  --font-sans: var(--font-manrope), sans-serif;
+  --font-display: var(--font-bricolage), sans-serif;
+  --font-mono: var(--font-jetbrains), monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -121,5 +122,19 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .assessment-stage { @apply relative z-10 flex min-h-dvh items-center justify-center px-4 py-8 sm:px-6; }
+  .assessment-card { @apply rounded-3xl bg-white shadow-[0_1px_2px_#1b0e440d,0_24px_64px_-24px_#6a2be938]; }
+  .assessment-button { @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-7 py-4 text-[15px] font-bold text-white shadow-[0_10px_28px_-10px_#6a2be98c] transition-all hover:gap-3 hover:bg-[#7C3BF0] active:scale-[.98] disabled:cursor-not-allowed disabled:bg-[#D3BBF4] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary; }
+}
+@keyframes ambient-drift { to { transform: translate(45px, 35px) scale(1.1); } }
+@keyframes question-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  #assessment-app, #assessment-app *, #assessment-app *::before, #assessment-app *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
   }
 }

@@ -105,7 +105,7 @@ export default function RegistrationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="relative">
       <CandidateModal onSubmit={handleStartQuiz} />
     </div>
   );

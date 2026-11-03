@@ -1,216 +1,51 @@
 "use client";
 
-import type React from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
+import { ArrowRight, ScanFace, SquareCheck } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+export type { CandidateData } from "@/lib/candidate-context";
+import type { CandidateData } from "@/lib/candidate-context";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Card } from "@/components/ui/card";
-
-export type CandidateData = {
-  apiKey: string;
-  candidateId: string;
-  assessmentId: string;
-  firstName: string;
-  lastName: string;
-  imageUrl: string;
-  enableFacialRecognition: boolean;
-};
-
-interface CandidateModalProps {
-  onSubmit: (data: CandidateData) => Promise<void> | void;
-}
-
-export function CandidateModal({ onSubmit }: CandidateModalProps) {
-  const [formData, setFormData] = useState({
-    apiKey: "",
-    candidateId: "",
-    assessmentId: "",
-    firstName: "",
-    lastName: "",
-    imageUrl: "",
-    enableFacialRecognition: false,
-  });
+export function CandidateModal({ onSubmit }: { onSubmit: (data: CandidateData) => Promise<void> | void }) {
+  const [formData, setFormData] = useState<CandidateData>({ apiKey: "", candidateId: "", assessmentId: "", firstName: "", lastName: "", imageUrl: "", enableFacialRecognition: false });
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-    if (!formData.apiKey.trim()) newErrors.apiKey = "API Key is required";
-    // if (!formData.candidateId.trim())
-    //   newErrors.candidateId = "Candidate ID is required";
-    // if (!formData.assessmentId.trim())
-    //   newErrors.assessmentId = "Assessment ID is required";
-    if (!formData.firstName.trim())
-      newErrors.firstName = "First Name is required";
-    if (!formData.lastName.trim()) newErrors.lastName = "Last Name is required";
-    // if (!formData.imageUrl.trim()) newErrors.imageUrl = "Image URL is required"
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      if (validateForm()) {
-        console.log("Form Data Submitted:", formData);
-        await onSubmit(formData);
-      }
-    } finally {
-      // any cleanup if needed
-      setLoading(false);
+  const [error, setError] = useState("");
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => setFormData(previous => ({ ...previous, [event.target.name]: event.target.value }));
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!formData.apiKey.trim() || !formData.firstName.trim() || !formData.lastName.trim()) {
+      setError("Please fill in your API key, first name and last name."); return;
     }
+    setError(""); setLoading(true);
+    try { await onSubmit(formData); }
+    catch { setError("Unable to start the assessment. Please try again."); }
+    finally { setLoading(false); }
   };
-
-  return (
-    <div className="flex items-center justify-center min-h-screen px-4 py-8">
-      <Card className="w-full max-w-md border-2">
-        <div className="p-8">
-          <h1 className="text-3xl font-bold text-center mb-2">
-            Test Assessment
-          </h1>
-          <p className="text-center text-slate-600 mb-8">
-            Enter your details to begin
-          </p>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="apiKey">Widget API Key</Label>
-              <Input
-                id="apiKey"
-                name="apiKey"
-                type="password"
-                placeholder="Enter your API key"
-                value={formData.apiKey}
-                onChange={handleChange}
-                className={errors.apiKey ? "border-red-500" : ""}
-              />
-              {errors.apiKey && (
-                <p className="text-sm text-red-500">{errors.apiKey}</p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="candidateId">Candidate ID</Label>
-                <Input
-                  id="candidateId"
-                  name="candidateId"
-                  placeholder="Auto-generated if left blank"
-                  value={formData.candidateId}
-                  onChange={handleChange}
-                  className={errors.candidateId ? "border-red-500" : ""}
-                />
-                {errors.candidateId && (
-                  <p className="text-xs text-red-500">{errors.candidateId}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="assessmentId">Assessment ID</Label>
-                <Input
-                  id="assessmentId"
-                  name="assessmentId"
-                  placeholder="Auto-generated if left blank"
-                  value={formData.assessmentId}
-                  onChange={handleChange}
-                  className={errors.assessmentId ? "border-red-500" : ""}
-                />
-                {errors.assessmentId && (
-                  <p className="text-xs text-red-500">{errors.assessmentId}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  name="firstName"
-                  placeholder="John"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  className={errors.firstName ? "border-red-500" : ""}
-                />
-                {errors.firstName && (
-                  <p className="text-xs text-red-500">{errors.firstName}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  name="lastName"
-                  placeholder="Doe"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className={errors.lastName ? "border-red-500" : ""}
-                />
-                {errors.lastName && (
-                  <p className="text-xs text-red-500">{errors.lastName}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="imageUrl">Candidate Image URL</Label>
-              <Input
-                id="imageUrl"
-                name="imageUrl"
-                type="url"
-                placeholder="https://example.com/image.jpg"
-                value={formData.imageUrl}
-                onChange={handleChange}
-                className={errors.imageUrl ? "border-red-500" : ""}
-              />
-              {errors.imageUrl && (
-                <p className="text-sm text-red-500">{errors.imageUrl}</p>
-              )}
-            </div>
-
-            <div className="flex items-center space-x-3 pt-2">
-              <Checkbox
-                id="facialRecognition"
-                name="enableFacialRecognition"
-                checked={formData.enableFacialRecognition}
-                onCheckedChange={(checked) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    enableFacialRecognition: checked === true,
-                  }))
-                }
-              />
-              <Label
-                htmlFor="facialRecognition"
-                className="font-normal cursor-pointer"
-              >
-                Enable Facial Recognition
-              </Label>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full h-11 text-base font-semibold mt-6"
-            >
-              Start Quiz
-            </Button>
-          </form>
-        </div>
-      </Card>
+  const field = (name: Exclude<keyof CandidateData, "enableFacialRecognition">, label: string, placeholder: string, required = false, type = "text") => (
+    <div className="min-w-0 space-y-2">
+      <label htmlFor={name} className="block font-mono text-[11px] font-medium uppercase tracking-[.12em] text-foreground/60">{label} {required && <span className="text-primary">*</span>}</label>
+      <input id={name} name={name} type={type} value={formData[name]} onChange={handleChange} placeholder={placeholder} autoComplete={name === "firstName" ? "given-name" : name === "lastName" ? "family-name" : "off"} aria-required={required} className="w-full rounded-[14px] border-[1.5px] border-border bg-[#FCFBFE] px-4 py-[13px] text-[15px] font-medium outline-none transition placeholder:font-normal placeholder:text-foreground/40 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/8" />
     </div>
+  );
+  return (
+    <main className="assessment-stage">
+      <section className="assessment-card w-full max-w-[520px] px-[26px] py-9 sm:px-11 sm:pb-10 sm:pt-12">
+        <div className="mb-9 flex items-center gap-2.5"><span className="grid size-[34px] place-items-center rounded-[11px] bg-gradient-to-br from-primary to-[#AF46E8] text-white shadow-lg shadow-primary/25"><SquareCheck size={17} /></span><span className="font-mono text-[13px] font-semibold tracking-[.06em]">EYEPROCTOR<span className="text-primary">·</span>IO</span></div>
+        <h1 className="mb-2 font-display text-[clamp(30px,4.4vw,38px)] font-semibold leading-[1.08] tracking-tight">Eye demo <span className="text-primary">Assessment</span></h1>
+        <p className="mb-8 text-[15px] text-foreground/60">Enter your details to begin the evaluation.</p>
+        <form onSubmit={handleSubmit} className="space-y-[18px]">
+          {error && <p role="alert" className="rounded-[10px] bg-[#FEB591]/30 px-3.5 py-2.5 text-[13px] font-semibold text-[#C2410C]">{error}</p>}
+          {field("apiKey", "Widget API Key", "Enter your API key", true, "password")}
+          <div className="grid gap-[14px] sm:grid-cols-2">{field("candidateId", "Candidate ID", "Auto-generated if blank")}{field("assessmentId", "Assessment ID", "Auto-generated if blank")}</div>
+          <div className="grid gap-[14px] sm:grid-cols-2">{field("firstName", "First Name", "John", true)}{field("lastName", "Last Name", "Doe", true)}</div>
+          {field("imageUrl", "Candidate Image URL", "https://example.com/image.jpg", false, "url")}
+          <div className="my-[22px] flex items-center justify-between gap-3 rounded-[14px] bg-primary/8 px-4 py-3.5">
+            <label htmlFor="facialRecognition" className="flex cursor-pointer items-center gap-2.5 text-sm font-semibold"><ScanFace size={17} className="shrink-0 text-primary" />Enable Facial Recognition</label>
+            <Switch id="facialRecognition" checked={formData.enableFacialRecognition} onCheckedChange={checked => setFormData(previous => ({ ...previous, enableFacialRecognition: checked }))} className="h-[26px] w-[46px] data-[state=unchecked]:bg-[#D3BBF4] [&_span]:size-5 [&_span]:data-[state=checked]:translate-x-[22px]" />
+          </div>
+          <button type="submit" disabled={loading} className="assessment-button w-full">{loading ? "Starting…" : "Start Quiz"}<ArrowRight size={16} /></button>
+        </form>
+      </section>
+    </main>
   );
 }

@@ -16,6 +16,7 @@ export type CandidateData = {
 type QuizResult = {
   score: number;
   totalQuestions: number;
+  timeUsed?: number;
 };
 
 type CandidateContextType = {

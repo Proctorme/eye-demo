@@ -1,143 +1,77 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { ArrowRight } from "lucide-react"
 import { useRouter } from "next/navigation";
 import { QuizQuestion } from "./quiz-question"
 import { QuizTimer } from "./quiz-timer"
 import { QuizProgress } from "./quiz-progress"
 import { CandidateHeader } from "./candidate-header"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import { useCandidateContext } from "@/lib/candidate-context"
 
+import { selectQuizQuestions, type QuizQuestionData } from "@/lib/quiz-questions"
+
 interface QuizContainerProps {
-  onComplete?: (score: number, totalQuestions: number) => void;
+  onComplete?: (score: number, totalQuestions: number, timeUsed: number) => void;
 }
 
-// Sample questions - replace with your actual questions
-const QUIZ_QUESTIONS = [
-  {
-    id: 1,
-    question: "What is the capital of France?",
-    options: ["London", "Berlin", "Paris", "Madrid"],
-    correctAnswer: 2,
-  },
-  {
-    id: 2,
-    question: "Which planet is known as the Red Planet?",
-    options: ["Venus", "Mars", "Jupiter", "Saturn"],
-    correctAnswer: 1,
-  },
-  {
-    id: 3,
-    question: "What is the largest ocean on Earth?",
-    options: ["Atlantic", "Indian", "Arctic", "Pacific"],
-    correctAnswer: 3,
-  },
-  {
-    id: 4,
-    question: 'Who wrote "Romeo and Juliet"?',
-    options: ["Jane Austen", "William Shakespeare", "Mark Twain", "Charles Dickens"],
-    correctAnswer: 1,
-  },
-  {
-    id: 5,
-    question: "What is the chemical symbol for Gold?",
-    options: ["Go", "Gd", "Au", "Ag"],
-    correctAnswer: 2,
-  },
-]
-
 export function QuizContainer({ onComplete }: QuizContainerProps) {
-  const { candidateData, setQuizResult, widgetRef } = useCandidateContext();
+  const { candidateData, setQuizResult } = useCandidateContext();
   const router = useRouter();
-
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [score, setScore] = useState(0)
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
-  const [answered, setAnswered] = useState(false)
-  const [timeUp, setTimeUp] = useState(false)
-
-  if (!candidateData) {
-    return null; // Or redirect to registration page
-  }
-
-  const currentQuestion = QUIZ_QUESTIONS[currentQuestionIndex]
-  const isLastQuestion = currentQuestionIndex === QUIZ_QUESTIONS.length - 1
-
-  const handleAnswerSelect = (optionIndex: number) => {
-    if (!answered) {
-      setSelectedAnswer(optionIndex)
-      setAnswered(true)
-
-      // Check if answer is correct
-      if (optionIndex === currentQuestion.correctAnswer) {
-        setScore((prev) => prev + 1)
-      }
-    }
-  }
-
+  const [questions, setQuestions] = useState<QuizQuestionData[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const completed = useRef(false);
+  const startedAt = useRef<number | null>(null);
+  useEffect(() => {
+    setQuestions(selectQuizQuestions());
+    startedAt.current = Date.now();
+  }, []);
+  const currentQuestion = questions[currentQuestionIndex];
+  const isLastQuestion = currentQuestionIndex === questions.length - 1;
+  const finish = (finalScore: number) => {
+    if (completed.current) return;
+    completed.current = true;
+    const timeUsed = Math.min(300, Math.round((Date.now() - (startedAt.current ?? Date.now())) / 1000));
+    if (onComplete) onComplete(finalScore, questions.length, timeUsed);
+    else { setQuizResult({ score: finalScore, totalQuestions: questions.length, timeUsed }); router.push('/results'); }
+  };
   const handleNextQuestion = () => {
-    if (isLastQuestion) {
-      const finalScore = score + (selectedAnswer === currentQuestion.correctAnswer ? 1 : 0);
-      // Call the onComplete callback if provided, otherwise use context
-      if (onComplete) {
-        onComplete(finalScore, QUIZ_QUESTIONS.length);
-      } else {
-        setQuizResult({ score: finalScore, totalQuestions: QUIZ_QUESTIONS.length });
-        router.push('/results');
-      }
-    } else {
-      setCurrentQuestionIndex((prev) => prev + 1)
-      setSelectedAnswer(null)
-      setAnswered(false)
-    }
-  }
-
-  const handleTimeUp = () => {
-    setTimeUp(true)
-    // Call the onComplete callback if provided, otherwise use context
-    if (onComplete) {
-      onComplete(score, QUIZ_QUESTIONS.length);
-    } else {
-      setQuizResult({ score, totalQuestions: QUIZ_QUESTIONS.length });
-      router.push('/results');
-    }
-  }
-
-  if (timeUp) {
-    return null
-  }
-
+    if (!currentQuestion || selectedAnswer === null || completed.current) return;
+    const nextScore = score + (selectedAnswer === currentQuestion.correctAnswer ? 1 : 0);
+    if (isLastQuestion) finish(nextScore);
+    else { setScore(nextScore); setCurrentQuestionIndex(previous => previous + 1); setSelectedAnswer(null); }
+  };
+  useEffect(() => {
+    if (!currentQuestion) return;
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.altKey || event.ctrlKey || event.metaKey || event.repeat) return;
+      if (event.target instanceof HTMLElement && event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+      const index = Number(event.key) - 1;
+      if (index >= 0 && index < currentQuestion.options.length) { event.preventDefault(); setSelectedAnswer(index); }
+      else if (event.key === 'Enter' && !(event.target instanceof HTMLElement && event.target.closest('button'))) { event.preventDefault(); handleNextQuestion(); }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  });
+  if (!candidateData || !currentQuestion) return null;
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header with candidate info and timer */}
-        <div className="flex items-center justify-between gap-4">
+    <main className="assessment-stage">
+      <div className="w-full max-w-[680px] space-y-[18px]">
+        <div className="flex flex-col items-stretch gap-[18px] sm:flex-row">
           <CandidateHeader candidateData={candidateData} />
-          <QuizTimer duration={300} onTimeUp={handleTimeUp} />
+          <QuizTimer duration={300} onTimeUp={() => finish(score + (selectedAnswer === currentQuestion.correctAnswer ? 1 : 0))} />
         </div>
-
-        {/* Progress bar */}
-        <QuizProgress current={currentQuestionIndex + 1} total={QUIZ_QUESTIONS.length} />
-
-        {/* Question card */}
-        <Card className="p-8 border-2">
-          <QuizQuestion
-            question={currentQuestion}
-            selectedAnswer={selectedAnswer}
-            answered={answered}
-            onAnswerSelect={handleAnswerSelect}
-          />
-
-          {/* Navigation button */}
-          <div className="mt-8 flex justify-end">
-            <Button onClick={handleNextQuestion} disabled={!answered} className="px-8 h-11 font-semibold" size="lg">
-              {isLastQuestion ? "Finish Quiz" : "Next Question"}
-            </Button>
+        <QuizProgress current={currentQuestionIndex + 1} total={questions.length} />
+        <section className="assessment-card px-[22px] pb-6 pt-7 sm:px-10 sm:pb-8 sm:pt-10">
+          <QuizQuestion question={{ ...currentQuestion, id: currentQuestionIndex + 1 }} selectedAnswer={selectedAnswer} onAnswerSelect={setSelectedAnswer} />
+          <div className="mt-7 flex flex-col-reverse items-stretch justify-between gap-3.5 sm:flex-row sm:items-center">
+            <p className="text-center font-mono text-[11px] tracking-[.04em] text-foreground/40 sm:text-left">Press <kbd className="rounded bg-[#E5DFFB] px-1.5 py-0.5 text-foreground">1</kbd>–<kbd className="rounded bg-[#E5DFFB] px-1.5 py-0.5 text-foreground">4</kbd> to answer · <kbd className="rounded bg-[#E5DFFB] px-1.5 py-0.5 text-foreground">↵</kbd> to continue</p>
+            <button onClick={handleNextQuestion} disabled={selectedAnswer === null} className="assessment-button shrink-0 px-[30px] py-3.5">{isLastQuestion ? "Finish" : "Next Question"}<ArrowRight size={16} /></button>
           </div>
-        </Card>
+        </section>
       </div>
-    </div>
-  )
+    </main>
+  );
 }
