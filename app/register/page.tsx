@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { CandidateModal, type CandidateData } from "@/components/candidate-modal";
 import { useCandidateContext } from "@/lib/candidate-context";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,11 @@ export default function RegistrationPage() {
   const { setCandidateData, setWidgetRef } = useCandidateContext();
   const router = useRouter();
   const [status, updateStatus] = useState("Not Started");
+
+  // Prepare the quiz route while the candidate completes the widget checks.
+  useEffect(() => {
+    router.prefetch("/quiz");
+  }, [router]);
 
   function refreshWithCandidateId() {
     const candidateId = Math.random().toString(36).substring(2, 10);
