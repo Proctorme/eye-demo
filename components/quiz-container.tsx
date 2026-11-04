@@ -16,24 +16,24 @@ interface QuizContainerProps {
 }
 
 export function QuizContainer({ onComplete }: QuizContainerProps) {
-  const { candidateData, setQuizResult } = useCandidateContext();
+  const { candidateData, setQuizResult, quizProgress, setQuizProgress } = useCandidateContext();
   const router = useRouter();
-  const [questions, setQuestions] = useState<QuizQuestionData[]>([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [score, setScore] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [questions] = useState<QuizQuestionData[]>(() => quizProgress?.questions ?? selectQuizQuestions());
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(quizProgress?.currentQuestionIndex ?? 0);
+  const [score, setScore] = useState(quizProgress?.score ?? 0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(quizProgress?.selectedAnswer ?? null);
   const completed = useRef(false);
-  const startedAt = useRef<number | null>(null);
+  const [startedAt] = useState(() => quizProgress?.startedAt ?? Date.now());
+  const [deadline] = useState(() => quizProgress?.deadline ?? startedAt + 300_000);
   useEffect(() => {
-    setQuestions(selectQuizQuestions());
-    startedAt.current = Date.now();
-  }, []);
+    setQuizProgress({ questions, currentQuestionIndex, score, selectedAnswer, startedAt, deadline });
+  }, [questions, currentQuestionIndex, score, selectedAnswer, startedAt, deadline, setQuizProgress]);
   const currentQuestion = questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
   const finish = (finalScore: number) => {
     if (completed.current) return;
     completed.current = true;
-    const timeUsed = Math.min(300, Math.round((Date.now() - (startedAt.current ?? Date.now())) / 1000));
+    const timeUsed = Math.min(300, Math.round((Date.now() - startedAt) / 1000));
     if (onComplete) onComplete(finalScore, questions.length, timeUsed);
     else { setQuizResult({ score: finalScore, totalQuestions: questions.length, timeUsed }); router.push('/results'); }
   };
@@ -61,7 +61,7 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
       <div className="w-full max-w-[680px] space-y-[18px]">
         <div className="flex flex-col items-stretch gap-[18px] sm:flex-row">
           <CandidateHeader candidateData={candidateData} />
-          <QuizTimer duration={300} onTimeUp={() => finish(score + (selectedAnswer === currentQuestion.correctAnswer ? 1 : 0))} />
+          <QuizTimer deadline={deadline} onTimeUp={() => finish(score + (selectedAnswer === currentQuestion.correctAnswer ? 1 : 0))} />
         </div>
         <QuizProgress current={currentQuestionIndex + 1} total={questions.length} />
         <section className="assessment-card px-[22px] pb-6 pt-7 sm:px-10 sm:pb-8 sm:pt-10">

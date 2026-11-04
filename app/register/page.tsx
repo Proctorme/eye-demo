@@ -1,13 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CandidateModal, type CandidateData } from "@/components/candidate-modal";
+import {
+  CandidateModal,
+  type CandidateData,
+} from "@/components/candidate-modal";
 import { useCandidateContext } from "@/lib/candidate-context";
 import { useRouter } from "next/navigation";
-import { IWidget } from "@/global";
+import { registerWidgetEvents } from "@/lib/widget-events";
+import { getWidgetConfig } from "@/lib/widget-config";
 
 export default function RegistrationPage() {
-  const { setCandidateData, setWidgetRef } = useCandidateContext();
+  const { setCandidateData, setWidgetRef, setQuizProgress, setQuizResult } =
+    useCandidateContext();
   const router = useRouter();
   const [status, updateStatus] = useState("Not Started");
 
@@ -53,53 +58,19 @@ export default function RegistrationPage() {
         return;
       }
       setWidgetRef(widget);
-      widget.resetSessionListeners();
-      // Add event listeners first
-      widget.on("STARTED", () => {
-        console.log("Widget started ▶️");
-        setCandidateData({...data, candidateId, assessmentId });
-        router.push("/quiz");
-        updateStatus("Started");
-      });
-
-      widget.on("FACE_ABSENCE", (data) => {
-        console.log(" face absence 🙈", data);
-      });
-      widget.on("TAB_NOT_FOCUS", (data) => {
-        console.log(" tab not focus 💻", data);
-      });
-      widget.on("MULTIPLE_FACE", (data) => {
-        console.log(" multiple face 🧑‍🧒‍🧒", data);
-      });
-      widget.on("SOUND_DETECTED", (data) => {
-        console.log(" sound detected 🎶", data);
-      });
-      widget.on("PERIODIC_SNAPSHOT", (data) => {
-        console.log(" periodic snapshot 📸", data);
-      });
-
-      widget.on("END_PROCTORING", () => {
-        console.log("Widget finished proctoring ⛔️");
-        updateStatus("Finished");
-      });
-
-      const config = {
-        apiKey: data.apiKey,
-        assessmentId,
-        candidateId,
-        assessmentTitle: "Test Assessment",
-        candidateEmail: "test@proctorme.online",
-        candidateFirstName: data.firstName,
-        candidateLastName: data.lastName,
-        candidateImageUrl: data.imageUrl,
-        institutionName: "Tech Academy International",
-        examDuration: 300,
-        features: {
-          facialRecognition: data.enableFacialRecognition,
+      registerWidgetEvents(widget, {
+        onStarted: () => {
+          setQuizProgress(null);
+          setQuizResult(null);
+          setCandidateData({ ...data, candidateId, assessmentId });
+          router.push("/quiz");
+          updateStatus("Started");
         },
-      };
+        onEnded: () => updateStatus("Finished"),
+      });
 
-      console.log("Initializing widget with config:", config);
+      const config = getWidgetConfig({ ...data, candidateId, assessmentId });
+
       updateStatus("Initializing...");
       widget.init(config);
 

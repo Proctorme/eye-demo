@@ -6,14 +6,14 @@ import { ResultsScreen } from "@/components/results-screen";
 import { useCandidateContext } from "@/lib/candidate-context";
 
 export default function ResultsPage() {
-  const { candidateData, quizResult, resetCandidateData, widgetRef } = useCandidateContext();
+  const { hydrated, candidateData, quizResult, resetCandidateData, widgetRef } = useCandidateContext();
   const router = useRouter();
 
   useEffect(() => {
-    if (!candidateData || !quizResult) {
+    if (hydrated && (!candidateData || !quizResult)) {
       router.push("/register");
     }
-  }, [candidateData, quizResult, router]);
+  }, [hydrated, candidateData, quizResult, router]);
 
   const handleRetry = () => {
     // End the proctoring session if widget is available
